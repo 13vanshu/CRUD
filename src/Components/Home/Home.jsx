@@ -17,7 +17,8 @@ const Home = () => {
         SellingPrice: "",
         PublishDate: ""
     });
-    const [bookList, setBookList] = useState([])
+    const [bookList, setBookList] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateId, setUpdateId] = useState(null);
 
@@ -88,6 +89,7 @@ const Home = () => {
             const data = await res.json();
             console.log("Fetched Books 👉", data);
             setBookList(data.BookList)
+
         } catch (error) {
             console.log(error);
         }
@@ -126,6 +128,12 @@ const Home = () => {
             SellingPrice: data?.SellingPrice,
             PublishDate: data?.PublishDate,
         })
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
         setUpdateId(data._id);
         setIsUpdating(true);
         toast.info("Edit mode enabled. Now click Submit to update.");
@@ -143,11 +151,50 @@ const Home = () => {
         setIsUpdating(false);
     };
 
+    const filteredBooks = bookList.filter((book) => {
+        const term = searchTerm.toLowerCase();
+
+        return (
+            book.BookName?.toLowerCase().includes(term) ||
+            book.Author?.toLowerCase().includes(term) ||
+            book.BookTitle?.toLowerCase().includes(term)
+        );
+    });
+
+    
+        const [currentPage, setCurrentPage] = useState(1);
+        const booksPerPage = 5;
+
+        const indexOfLastBook = currentPage * booksPerPage;
+        const indexOfFirstBook = indexOfLastBook - booksPerPage;
+
+        const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+
+        const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+    
+
     useEffect(() => {
         fetchBooks();
     }, [])
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     return (
         <section className='w-full px-4 sm:px-6 md:px-8 min-h-[calc(100vh-60px)]'>
+
+            <div className="w-full flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
+                <h2 className="text-xl font-semibold text-gray-800">Books List</h2>
+
+                <input
+                    type="text"
+                    placeholder="Search by Book Name, Title or Author..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full sm:w-72 outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+                />
+            </div>
 
             {/* FORM */}
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 my-8'>
@@ -198,14 +245,14 @@ const Home = () => {
 
                     <tbody className="bg-white divide-y divide-gray-200">
 
-                        {bookList.length === 0 ? (
+                        {currentBooks.length === 0 ? (
                             <tr>
                                 <td colSpan="6" className="text-center py-10 text-gray-400 text-lg">
-                                    No Books Available
+                                    {searchTerm ? "No Matching Book Found" : "No Books Available"}
                                 </td>
                             </tr>
                         ) : (
-                            bookList.map((book) => (
+                            currentBooks.map((book) => (
                                 <tr
                                     key={book._id}
                                     className="block md:table-row border md:border-0 rounded-lg md:rounded-none mb-4 md:mb-0 shadow md:shadow-none p-4 md:p-0 bg-white md:bg-transparent hover:bg-gray-100 transition"
@@ -258,6 +305,45 @@ const Home = () => {
 
                     </tbody>
                 </table>
+            </div>
+            
+            {/* PAGING */}
+            <div className="w-full flex justify-center items-center gap-2  flex-wrap py-10">
+
+                <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md text-sm ${currentPage === 1 ? "bg-gray-300" : "bg-gray-700 text-white"
+                        }`}
+                >
+                    Prev
+                </button>
+
+                {
+                [...Array(totalPages)].map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setCurrentPage(index + 1)}
+                        className={`px-3 py-1 rounded-md text-sm ${currentPage === index + 1
+                                ? "bg-zinc-500 text-white"
+                                : "bg-gray-200"
+                            }`}
+                    >
+                        {index + 1}
+                    </button>
+                ))}
+
+                <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages || totalPages === 0
+                            ? "bg-gray-300"
+                            : "bg-gray-700 text-white"
+                        }`}
+                >
+                    Next
+                </button>
+
             </div>
 
         </section>
