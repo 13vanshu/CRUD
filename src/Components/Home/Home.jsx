@@ -147,6 +147,7 @@ const Home = () => {
             SellingPrice: "",
             PublishDate: ""
         });
+        setSearchTerm("");
 
         setIsUpdating(false);
     };
@@ -161,28 +162,61 @@ const Home = () => {
         );
     });
 
-    
-        const [currentPage, setCurrentPage] = useState(1);
-        const booksPerPage = 5;
 
-        const indexOfLastBook = currentPage * booksPerPage;
-        const indexOfFirstBook = indexOfLastBook - booksPerPage;
+    const [currentPage, setCurrentPage] = useState(1);
+    const booksPerPage = 5;
 
-        const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+    const indexOfLastBook = currentPage * booksPerPage;
+    const indexOfFirstBook = indexOfLastBook - booksPerPage;
 
-        const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
-    
+    const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+
+    const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
 
     useEffect(() => {
         fetchBooks();
     }, [])
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm]);
+
 
     return (
         <section className='w-full px-4 sm:px-6 md:px-8 min-h-[calc(100vh-60px)]'>
+
+            {/* SEARCH */}
+
+            <div className='w-full border border-gray-300 rounded-2xl shadow-lg p-6 bg-white hover:shadow-xl mt-10 mb-10 transition duration-300'>
+                {/* FORM */}
+                <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 my-8'>
+                    {formFields.map((field, index) => (
+                        <div key={index} className='w-full flex flex-col gap-2'>
+                            <label className='text-sm font-medium text-gray-700'>{field.label}</label>
+                            <input
+                                type={field.type}
+                                name={field.name}
+                                placeholder={field.placeholder}
+                                value={bookForm[field.name]}
+                                onChange={handleFormChange}
+                                className='w-full border border-gray-300 rounded-sm outline-none h-9 px-2 text-gray-800 text-sm focus:ring-2 focus:ring-gray-400'
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                {/* BUTTONS */}
+                <div className='w-full flex flex-col sm:flex-row justify-end gap-2'>
+                    <button
+                        onClick={handleSubmit}
+                        className='bg-gray-700 hover:bg-gray-800 text-white h-9 px-4 rounded-md cursor-pointer text-sm sm:text-base transition'>
+                        Submit
+                    </button>
+                    <button
+                        onClick={handleClear}
+                        className='bg-gray-700 hover:bg-gray-800 text-white h-9 px-4 rounded-md cursor-pointer text-sm sm:text-base transition'>
+                        Clear
+                    </button>
+                </div>
+            </div>
 
             <div className="w-full flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
                 <h2 className="text-xl font-semibold text-gray-800">Books List</h2>
@@ -194,37 +228,6 @@ const Home = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border border-gray-300 rounded-md px-3 py-2 w-full sm:w-72 outline-none focus:ring-2 focus:ring-gray-500 text-sm"
                 />
-            </div>
-
-            {/* FORM */}
-            <div className='w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 my-8'>
-                {formFields.map((field, index) => (
-                    <div key={index} className='w-full flex flex-col gap-2'>
-                        <label className='text-sm font-medium text-gray-700'>{field.label}</label>
-                        <input
-                            type={field.type}
-                            name={field.name}
-                            placeholder={field.placeholder}
-                            value={bookForm[field.name]}
-                            onChange={handleFormChange}
-                            className='w-full border border-gray-300 rounded-sm outline-none h-9 px-2 text-gray-800 text-sm focus:ring-2 focus:ring-gray-400'
-                        />
-                    </div>
-                ))}
-            </div>
-
-            {/* BUTTONS */}
-            <div className='w-full flex flex-col sm:flex-row justify-end gap-2'>
-                <button
-                    onClick={handleSubmit}
-                    className='bg-gray-700 hover:bg-gray-800 text-white h-9 px-4 rounded-md cursor-pointer text-sm sm:text-base transition'>
-                    Submit
-                </button>
-                <button
-                    onClick={handleClear}
-                    className='bg-gray-700 hover:bg-gray-800 text-white h-9 px-4 rounded-md cursor-pointer text-sm sm:text-base transition'>
-                    Clear
-                </button>
             </div>
 
             {/* TABLE */}
@@ -306,7 +309,7 @@ const Home = () => {
                     </tbody>
                 </table>
             </div>
-            
+
             {/* PAGING */}
             <div className="w-full flex justify-center items-center gap-2  flex-wrap py-10">
 
@@ -320,25 +323,25 @@ const Home = () => {
                 </button>
 
                 {
-                [...Array(totalPages)].map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 rounded-md text-sm ${currentPage === index + 1
+                    [...Array(totalPages)].map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setCurrentPage(index + 1)}
+                            className={`px-3 py-1 rounded-md text-sm ${currentPage === index + 1
                                 ? "bg-zinc-500 text-white"
                                 : "bg-gray-200"
-                            }`}
-                    >
-                        {index + 1}
-                    </button>
-                ))}
+                                }`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
 
                 <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
                     className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages || totalPages === 0
-                            ? "bg-gray-300"
-                            : "bg-gray-700 text-white"
+                        ? "bg-gray-300"
+                        : "bg-gray-700 text-white"
                         }`}
                 >
                     Next
